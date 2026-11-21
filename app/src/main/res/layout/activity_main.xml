@@ -93,6 +93,29 @@
             android:orientation="horizontal"
             android:layout_marginTop="12dp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alert me with"
+            android:textSize="16sp"
+            android:textColor="#3D5A6C"
+            android:layout_marginTop="32dp" />
+
+        <!-- Sound / Vibrate / Both -->
+        <LinearLayout
+            android:id="@+id/alertModes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/repeat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textSize="15sp" />
+
         <Button
             android:id="@+id/exact"
             android:layout_width="match_parent"

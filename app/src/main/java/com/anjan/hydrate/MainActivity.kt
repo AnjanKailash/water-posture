@@ -24,7 +24,15 @@ class MainActivity : Activity() {
     private lateinit var interval: TextView
     private lateinit var exact: Button
 
+    private lateinit var repeat: Button
+    private val alertButtons = mutableListOf<Pair<Int, Button>>()
+
     private val presetMinutes = listOf(15, 30, 45, 60, 90)
+    private val alertOptions = listOf(
+        Prefs.ALERT_SOUND to "🔔 Sound",
+        Prefs.ALERT_VIBRATE to "📳 Vibrate",
+        Prefs.ALERT_BOTH to "🔔📳 Both"
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +68,29 @@ class MainActivity : Activity() {
             }
             presets.addView(b, LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+
+        val modes = findViewById<LinearLayout>(R.id.alertModes)
+        alertOptions.forEach { (mode, label) ->
+            val b = Button(this).apply {
+                textSize = 14f
+                isAllCaps = false
+                setOnClickListener {
+                    Prefs.setAlertMode(this@MainActivity, mode)
+                    refresh()
+                    ReminderReceiver.show(this@MainActivity)  // instant preview of the new style
+                }
+            }
+            alertButtons += mode to b
+            modes.addView(b, LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        }
+
+        repeat = findViewById(R.id.repeat)
+        repeat.isAllCaps = false
+        repeat.setOnClickListener {
+            Prefs.setRepeatUntilDone(this, !Prefs.repeatUntilDone(this))
+            refresh()
         }
 
         // First launch: switch on straight away so it works with zero setup clicks.
@@ -130,6 +161,21 @@ class MainActivity : Activity() {
                 else "Running"
             }
         }
+
+        val current = Prefs.alertMode(this)
+        alertButtons.forEach { (mode, b) ->
+            val label = alertOptions.first { it.first == mode }.second
+            b.text = if (mode == current) "✓ $label" else label
+            b.background = GradientDrawable().apply {
+                cornerRadius = 32f
+                setColor(Color.parseColor(if (mode == current) "#BFE3F5" else "#E3EBF0"))
+            }
+        }
+
+        repeat.text = if (Prefs.repeatUntilDone(this))
+            "🔁 Repeat every 2 min until I tap Done: ON"
+        else
+            "🔁 Repeat until I tap Done: OFF"
 
         exact.visibility = if (on && !Scheduler.canUseExact(this)) View.VISIBLE else View.GONE
     }

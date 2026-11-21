@@ -11,8 +11,18 @@ android {
         applicationId = "com.anjan.hydrate"
         minSdk = 26          // Android 8.0+
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+    }
+
+    // Fixed signing key so every new APK installs over the previous one.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
