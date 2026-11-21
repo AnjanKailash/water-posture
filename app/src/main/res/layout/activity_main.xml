@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F4F9FC">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💧 🧍"
+            android:textSize="48sp"
+            android:layout_marginTop="24dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Water &amp; Posture"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#0B3954"
+            android:layout_marginTop="8dp" />
+
+        <!-- The one big button: tap to start / stop -->
+        <Button
+            android:id="@+id/toggle"
+            android:layout_width="match_parent"
+            android:layout_height="88dp"
+            android:layout_marginTop="32dp"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textSize="15sp"
+            android:textColor="#3D5A6C"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remind me every"
+            android:textSize="16sp"
+            android:textColor="#3D5A6C"
+            android:layout_marginTop="36dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+
+            <Button
+                android:id="@+id/minus"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:text="−5"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/interval"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textSize="32sp"
+                android:textStyle="bold"
+                android:textColor="#0B3954" />
+
+            <Button
+                android:id="@+id/plus"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:text="+5"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <!-- One-tap presets -->
+        <LinearLayout
+            android:id="@+id/presets"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="12dp" />
+
+        <Button
+            android:id="@+id/exact"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Allow on-time reminders (one-time setup)"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/test"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Show a test reminder"
+            android:textColor="#1A7FB8" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Stays silent while Airplane mode or Do Not Disturb is on."
+            android:textSize="13sp"
+            android:textColor="#6B8496"
+            android:gravity="center" />
+    </LinearLayout>
+</ScrollView>
