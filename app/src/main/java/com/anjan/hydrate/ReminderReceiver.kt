@@ -147,25 +147,24 @@ class ReminderReceiver : BroadcastReceiver() {
                 .addAction(Notification.Action.Builder(null as Icon?,
                     "Snooze ${Scheduler.SNOOZE_MINUTES} min", snoozePi).build())
 
+            // Tapping the reminder always opens the alarm page (snooze / done / activity details).
+            val alarmPagePi = PendingIntent.getActivity(
+                c, 2004,
+                Intent(c, MoveActivity::class.java)
+                    .putExtra(MoveActivity.EXTRA_FROM_REMINDER, true)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            b.setContentIntent(alarmPagePi)
+
             if (move != null) {
-                // Tap the reminder to open the how-to page for this activity.
-                val howToPi = PendingIntent.getActivity(
-                    c, 2004,
-                    Intent(c, MoveActivity::class.java)
-                        .putExtra(MoveActivity.EXTRA_FROM_REMINDER, true)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
                 val swapPi = PendingIntent.getBroadcast(
                     c, 2005, Intent(c, SwapReceiver::class.java),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                 )
-                b.setContentIntent(howToPi)
-                    .setStyle(Notification.BigTextStyle()
+                b.setStyle(Notification.BigTextStyle()
                         .bigText("$text\nTap for step-by-step instructions."))
                     .addAction(Notification.Action.Builder(null as Icon?, "🔀 Swap", swapPi).build())
-            } else {
-                b.setContentIntent(donePi)
             }
             b.addAction(Notification.Action.Builder(null as Icon?, "Done ✓", donePi).build())
 

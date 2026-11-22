@@ -27,13 +27,72 @@ class MoveActivity : Activity() {
     private var fromReminder = false
     private lateinit var move: Move
 
+    private var showMove = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        load()
+    }
+
+    /** A new reminder while this page is open: show the new one. */
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        load()
+    }
+
+    private fun load() {
         fromReminder = intent.getBooleanExtra(EXTRA_FROM_REMINDER, false)
+        showMove = !fromReminder || Prefs.moveEnabled(this)
         move = Moves.byId(intent.getStringExtra(EXTRA_MOVE_ID))
             ?: Recommender.current(this) ?: Moves.all.first()
-        AlarmSound.stop()  // opening the how-to quiets the alarm
+        AlarmSound.stop()  // opening the reminder quiets the alarm
         build()
+    }
+
+    /** Top of the page when opened from a reminder: time, water, and the alarm controls. */
+    private fun alarmSection(col: LinearLayout) {
+        val now = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date())
+        col.addView(Ui.text(this, "⏰  $now  ·  Break time", 15f, Ui.ON_BLUE, "sans-serif-medium"))
+        val water = if (Profile.hasProfile(this)) "💧 Drink ~${Profile.mlPerReminder(this)} ml"
+                    else "💧 Drink a glass of water"
+        col.addView(Ui.text(this, water, 28f, android.graphics.Color.WHITE, "sans-serif-black"),
+            Ui.topMargin(this, 4))
+        col.addView(Ui.text(this,
+            if (showMove) "…then: ${move.emoji} ${move.title(this)}" else "…and sit up straight 🧍",
+            18f, Ui.ON_BLUE, "sans-serif-medium"), Ui.topMargin(this, 2))
+
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        val snooze = Ui.button(this, "😴  Snooze ${Scheduler.SNOOZE_MINUTES} min", false).apply {
+            setOnClickListener {
+                SnoozeReceiver.snooze(this@MoveActivity)
+                Toast.makeText(this@MoveActivity,
+                    "Snoozed — back in ${Scheduler.SNOOZE_MINUTES} min", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+        val done = Ui.button(this, "✓  Done", true).apply {
+            setOnClickListener {
+                DoneReceiver.markDone(this@MoveActivity)
+                Toast.makeText(this@MoveActivity, "Nice work! 💪", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
+        row.addView(snooze, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            .apply { marginEnd = Ui.dp(this@MoveActivity, 6) })
+        row.addView(done, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            .apply { marginStart = Ui.dp(this@MoveActivity, 6) })
+        col.addView(row, Ui.topMargin(this, 16))
+
+        if (showMove) {
+            col.addView(Ui.button(this, "🔀  Suggest something else", false).apply {
+                setOnClickListener {
+                    move = Recommender.pickNext(this@MoveActivity)
+                    ReminderReceiver.show(this@MoveActivity, withAlert = false)
+                    build()
+                }
+            }, Ui.topMargin(this, 10))
+        }
     }
 
     override fun onDestroy() {
@@ -46,9 +105,24 @@ class MoveActivity : Activity() {
         val col = Ui.page(this)
         col.addView(Ui.back(this))
 
+        if (fromReminder) alarmSection(col)
+
+        if (!showMove) {
+            // Activities are switched off: just a posture tip.
+            val tip = Ui.card(this)
+            tip.addView(Ui.label(this, "Quick posture check"))
+            listOf("Feet flat on the floor, knees at hip height.",
+                "Back against the chair, shoulders relaxed and down.",
+                "Screen at eye level, about an arm's length away.").forEach { t ->
+                tip.addView(Ui.text(this, "✅  $t", 15f, Ui.NAVY), Ui.topMargin(this, 10))
+            }
+            col.addView(tip, Ui.topMargin(this, 18))
+            return
+        }
+
         if (fromReminder) {
-            col.addView(Ui.text(this, "💧  First, have a few sips of water", 15f, Ui.ON_BLUE,
-                "sans-serif-medium"))
+            col.addView(Ui.label(this, "Your activity").apply { setTextColor(Ui.ON_BLUE) },
+                Ui.topMargin(this, 22))
         }
 
         // Hero card
