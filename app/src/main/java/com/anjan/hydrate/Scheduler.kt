@@ -30,6 +30,9 @@ object Scheduler {
     /** Bring the reminder back in [SNOOZE_MINUTES] without touching the regular schedule. */
     fun scheduleSnooze(c: Context) {
         val at = System.currentTimeMillis() + SNOOZE_MINUTES * 60_000L
+        // If the next regular reminder is about due anyway, let that one cover it (no double ring).
+        val next = Prefs.nextAt(c)
+        if (Prefs.isEnabled(c) && next > 0 && at >= next - 2 * 60_000L) return
         val am = c.getSystemService(AlarmManager::class.java)
         val pi = snoozeIntent(c)
         if (canUseExact(c)) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
@@ -79,6 +82,16 @@ object Scheduler {
     /** Schedule the next slot on the timetable (30 s margin so a just-fired slot isn't reused). */
     fun scheduleNext(c: Context) =
         scheduleAt(c, nextSlot(c, System.currentTimeMillis() + 30_000L))
+
+    /**
+     * After a reminder has just rung: the next one is at least half an interval away,
+     * so a late-delivered reminder (e.g. 4:00 arriving at 4:22) is never followed
+     * by another one minutes later (4:30) — the next would be 5:00.
+     */
+    fun scheduleNextAfterReminder(c: Context) {
+        val halfInterval = Prefs.intervalMinutes(c) * 60_000L / 2
+        scheduleAt(c, nextSlot(c, System.currentTimeMillis() + halfInterval))
+    }
 
     private fun scheduleAt(c: Context, at: Long) {
         if (!Prefs.isEnabled(c)) return

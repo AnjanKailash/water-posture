@@ -35,7 +35,8 @@ class ReminderReceiver : BroadcastReceiver() {
         }
 
         // Queue the next slot on the timetable first, so the cycle never stops.
-        Scheduler.scheduleNext(context)
+        // (At least half an interval away, so a late reminder isn't followed by another right after.)
+        Scheduler.scheduleNextAfterReminder(context)
         Scheduler.cancelSnooze(context)  // a fresh reminder replaces any pending snooze
 
         // During Airplane mode / DND this slot is skipped silently; the next slot still rings.

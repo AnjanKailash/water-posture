@@ -33,6 +33,20 @@
             android:lineSpacingExtra="2dp"
             android:fontFamily="sans-serif-black" />
 
+        <!-- One-time setup banner (only when precise timing isn't allowed) -->
+        <TextView
+            android:id="@+id/exact"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:elevation="6dp"
+            android:padding="18dp"
+            android:text="⏰  Reminders may arrive late. Tap here to allow on-time reminders (one-time setup)."
+            android:textColor="#5C3B00"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:visibility="gone" />
+
         <!-- Hero card: big on/off circle -->
         <LinearLayout
             android:id="@+id/heroCard"
@@ -337,19 +351,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- One-time setup banner (only when precise timing isn't allowed) -->
-        <TextView
-            android:id="@+id/exact"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:elevation="6dp"
-            android:padding="18dp"
-            android:text="⏰  Tap to allow on-time reminders (one-time setup)"
-            android:textColor="#5C3B00"
-            android:textSize="14sp"
-            android:fontFamily="sans-serif-medium"
-            android:visibility="gone" />
+
 
         <TextView
             android:id="@+id/test"
