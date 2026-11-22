@@ -28,7 +28,7 @@ class BlinkService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.anjan.hydrate.BLINK_STOP"
-        private const val CHANNEL = "blink"
+        private const val CHANNEL = "blink_min"
         private const val NOTIFICATION_ID = 77
 
         @Volatile var running = false
@@ -79,9 +79,11 @@ class BlinkService : Service() {
 
     private fun startInForeground() {
         val nm = getSystemService(NotificationManager::class.java)
+        nm.deleteNotificationChannel("blink")  // older, more visible channel
         if (nm.getNotificationChannel(CHANNEL) == null) {
+            // MIN importance: no status-bar icon, just a collapsed line in the shade (Android requires one).
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL, "Blink reminder", NotificationManager.IMPORTANCE_LOW).apply {
+                NotificationChannel(CHANNEL, "Blink buzz (running)", NotificationManager.IMPORTANCE_MIN).apply {
                     description = "Shown while the blink reminder is running"
                     setSound(null, null)
                     enableVibration(false)
@@ -93,13 +95,15 @@ class BlinkService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val openPi = PendingIntent.getActivity(
-            this, 3002, Intent(this, MainActivity::class.java),
+            this, 3002, Intent(this, MoveActivity::class.java)
+                .putExtra(MoveActivity.EXTRA_MOVE_ID, "eyes")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val n = Notification.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_water)
-            .setContentTitle("👁  Blink reminder is on")
-            .setContentText("Gentle buzz every ${Prefs.blinkSeconds(this)} s — blink and look away.")
+            .setContentTitle("👁 Blink buzz every ${Prefs.blinkSeconds(this)} s")
+            .setContentText("Tap Stop when you're done")
             .setOngoing(true)
             .setContentIntent(openPi)
             .addAction(Notification.Action.Builder(null as Icon?, "■ Stop", stopPi).build())

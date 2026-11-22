@@ -172,8 +172,6 @@ class MainActivity : Activity() {
             }
         }
 
-        buildBlinkCard()
-
         // First launch: switch on straight away so it works with zero setup clicks.
         if (!getPreferences(MODE_PRIVATE).getBoolean("launched", false)) {
             getPreferences(MODE_PRIVATE).edit().putBoolean("launched", true).apply()
@@ -191,7 +189,6 @@ class MainActivity : Activity() {
         }
         awaitingExactPermission = false
         ticker.post(tick)
-        refreshBlink()
     }
 
     override fun onPause() {
@@ -248,53 +245,6 @@ class MainActivity : Activity() {
         Prefs.setIntervalMinutes(this, m)
         if (Prefs.isEnabled(this)) Scheduler.scheduleNext(this)  // restart countdown
         refresh()
-    }
-
-    // ---------- Blink reminder ----------
-    private lateinit var blinkButton: TextView
-    private val blinkChips = mutableListOf<Pair<Int, TextView>>()
-
-    private fun buildBlinkCard() {
-        val card = findViewById<LinearLayout>(R.id.blinkCard)
-        card.addView(Ui.label(this, "👁  Blink reminder"))
-        card.addView(Ui.text(this,
-            "A gentle double buzz every few seconds to remind you to blink and look away from the " +
-            "screen. Keeps going until you stop it. Silent in DND and Airplane mode.",
-            13f, muted), Ui.topMargin(this, 8))
-
-        blinkButton = Ui.button(this, "", true).apply {
-            setOnClickListener {
-                if (BlinkService.running) BlinkService.stop(this@MainActivity)
-                else { askNotificationPermissionIfNeeded(); BlinkService.start(this@MainActivity) }
-                // the service updates its state asynchronously; refresh shortly after
-                postDelayed({ refreshBlink() }, 300)
-            }
-        }
-        card.addView(blinkButton, Ui.topMargin(this, 14))
-
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf(10, 20, 30, 60).forEachIndexed { i, sec ->
-            val chip = chip("${sec}s").apply {
-                setOnClickListener {
-                    Prefs.setBlinkSeconds(this@MainActivity, sec)
-                    if (BlinkService.running) BlinkService.start(this@MainActivity)  // apply new interval
-                    refreshBlink()
-                }
-            }
-            blinkChips += sec to chip
-            row.addView(chip, weighted(i, 4))
-        }
-        card.addView(row, Ui.topMargin(this, 12))
-        refreshBlink()
-    }
-
-    private fun refreshBlink() {
-        if (!::blinkButton.isInitialized) return
-        val on = BlinkService.running
-        blinkButton.text = if (on) "■  Stop blink reminder" else "▶  Start blink reminder"
-        blinkButton.background = if (on) rounded(Color.parseColor("#E5484D"), 26f) else Ui.gradient(this, 26)
-        val secs = Prefs.blinkSeconds(this)
-        blinkChips.forEach { (s, chip) -> styleChip(chip, s == secs) }
     }
 
     private fun askNotificationPermissionIfNeeded() {
