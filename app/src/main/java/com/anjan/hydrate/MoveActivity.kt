@@ -63,7 +63,7 @@ class MoveActivity : Activity() {
             setPadding(Ui.dp(context, 12), Ui.dp(context, 6), Ui.dp(context, 12), Ui.dp(context, 6))
         }, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply { topMargin = Ui.dp(this, 8) })
+        ).apply { topMargin = Ui.dp(this@MoveActivity, 8) })
         hero.addView(Ui.text(this, move.summary, 15f, Ui.MUTED).apply { gravity = Gravity.CENTER },
             Ui.topMargin(this, 12))
         col.addView(hero, Ui.topMargin(this, 12))

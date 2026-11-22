@@ -114,7 +114,7 @@ class ReminderReceiver : BroadcastReceiver() {
             if (wantSound) AlarmSound.playOnce(c, finished) else finished()
         }
 
-        fun show(c: Context, finished: () -> Unit = {}, withAlert: Boolean = true) {
+        fun show(c: Context, withAlert: Boolean = true, finished: () -> Unit = {}) {
             ensureChannel(c)
             val nm = c.getSystemService(NotificationManager::class.java)
 
