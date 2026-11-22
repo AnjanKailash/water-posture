@@ -85,6 +85,7 @@ class MainActivity : Activity() {
         findViewById<TextView>(R.id.greeting).text = greeting()
 
         statDone.background = rounded(mist, 18f)
+        statDone.setOnClickListener { showHistory() }
         statEvery.background = rounded(mist, 18f)
 
         toggle.setOnClickListener {
@@ -141,6 +142,7 @@ class MainActivity : Activity() {
             }
             setOnClickListener {
                 askNotificationPermissionIfNeeded()
+                Prefs.logEvent(this@MainActivity, "▶ Test reminder")
                 if (Prefs.moveEnabled(this@MainActivity)) Recommender.pickNext(this@MainActivity)
                 ReminderReceiver.show(this@MainActivity)
             }
@@ -247,6 +249,16 @@ class MainActivity : Activity() {
         refresh()
     }
 
+    /** Today's reminder history: when each reminder rang and why. */
+    private fun showHistory() {
+        val log = Prefs.todayLog(this)
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Today's reminders")
+            .setMessage(if (log.isEmpty()) "Nothing yet today." else log.reversed().joinToString("\n"))
+            .setPositiveButton("OK", null)
+            .show()
+    }
+
     private fun askNotificationPermissionIfNeeded() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -293,7 +305,7 @@ class MainActivity : Activity() {
         }
 
         val done = Prefs.doneToday(this)
-        statDone.text = "💧  $done done today"
+        statDone.text = "✅  $done done today  ›"
         statEvery.text = "⏱  every $mins min"
         val moveOn = Prefs.moveEnabled(this)
         moveToggle.text = if (moveOn) "✓  On" else "Off"

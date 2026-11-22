@@ -81,6 +81,20 @@ object Prefs {
     fun setMealWalkDay(c: Context, meal: String, d: String) =
         sp(c).edit().putString("walk_day_$meal", d).apply()
 
+    // ---- Reminder history (today only, for "why did it ring?") ----
+    fun logEvent(c: Context, text: String) {
+        val time = SimpleDateFormat("h:mm a", Locale.getDefault()).format(Date())
+        val day = today()
+        val keep = if (sp(c).getString("log_day", "") == day) sp(c).getString("log", "") ?: "" else ""
+        val lines = (keep.split("\n").filter { it.isNotBlank() } + "$time  ·  $text").takeLast(60)
+        sp(c).edit().putString("log_day", day).putString("log", lines.joinToString("\n")).apply()
+    }
+
+    fun todayLog(c: Context): List<String> =
+        if (sp(c).getString("log_day", "") == today())
+            (sp(c).getString("log", "") ?: "").split("\n").filter { it.isNotBlank() }
+        else emptyList()
+
     // ---- Blink reminder ----
     fun blinkSeconds(c: Context) = sp(c).getInt("blink_seconds", 20)
     fun setBlinkSeconds(c: Context, s: Int) = sp(c).edit().putInt("blink_seconds", s).apply()

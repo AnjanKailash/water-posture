@@ -16,6 +16,7 @@ class DoneReceiver : BroadcastReceiver() {
             c.getSystemService(NotificationManager::class.java)
                 .cancel(ReminderReceiver.NOTIFICATION_ID)
             Prefs.incrementDoneToday(c)
+            Prefs.logEvent(c, "✓ Done")
         }
     }
 }

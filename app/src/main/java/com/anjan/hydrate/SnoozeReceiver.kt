@@ -15,6 +15,7 @@ class SnoozeReceiver : BroadcastReceiver() {
             c.getSystemService(NotificationManager::class.java)
                 .cancel(ReminderReceiver.NOTIFICATION_ID)
             Scheduler.scheduleSnooze(c)
+            Prefs.logEvent(c, "Snooze pressed")
         }
     }
 }

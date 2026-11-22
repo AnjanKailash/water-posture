@@ -28,11 +28,25 @@ class ReminderReceiver : BroadcastReceiver() {
 
         if (intent.action == Scheduler.ACTION_SNOOZE_FIRE) {
             // Snoozed reminder coming back: show it again, regular schedule untouched.
-            if (isAirplaneModeOn(context) || isDndOn(context)) return
+            if (isAirplaneModeOn(context) || isDndOn(context)) {
+                Prefs.logEvent(context, "Snooze skipped (DND / Airplane)"); return
+            }
+            Prefs.logEvent(context, "😴 Snoozed reminder rang")
             val pending = goAsync()
             show(context) { pending.finish() }
             return
         }
+
+        if (intent.action != null) {
+            // A leftover alarm from an older version (e.g. the old 2-minute repeat): ignore it.
+            Prefs.logEvent(context, "Ignored old leftover alarm")
+            return
+        }
+
+        val due = Prefs.nextAt(context)
+        val lateMin = if (due > 0) (System.currentTimeMillis() - due) / 60_000L else 0L
+        val dueText = if (due > 0) java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
+            .format(java.util.Date(due)) else "?"
 
         // Queue the next slot on the timetable first, so the cycle never stops.
         // (At least half an interval away, so a late reminder isn't followed by another right after.)
@@ -40,7 +54,12 @@ class ReminderReceiver : BroadcastReceiver() {
         Scheduler.cancelSnooze(context)  // a fresh reminder replaces any pending snooze
 
         // During Airplane mode / DND this slot is skipped silently; the next slot still rings.
-        if (isAirplaneModeOn(context) || isDndOn(context)) return
+        if (isAirplaneModeOn(context) || isDndOn(context)) {
+            Prefs.logEvent(context, "Skipped $dueText slot (DND / Airplane)")
+            return
+        }
+        Prefs.logEvent(context, "🔔 Rang for $dueText slot" +
+            (if (lateMin >= 2) " — $lateMin min late" else ""))
 
         // A fresh activity for each new reminder (snoozed ones keep theirs).
         if (Prefs.moveEnabled(context)) Recommender.pickNext(context)
