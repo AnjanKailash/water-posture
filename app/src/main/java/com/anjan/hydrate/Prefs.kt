@@ -1,6 +1,9 @@
 package com.anjan.hydrate
 
 import android.content.Context
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /** Tiny wrapper around SharedPreferences for the app's settings. */
 object Prefs {
@@ -9,9 +12,8 @@ object Prefs {
     private const val KEY_INTERVAL = "interval_minutes"
     private const val KEY_NEXT_AT = "next_at"
     private const val KEY_ALERT = "alert_mode"
-    private const val KEY_REPEAT = "repeat_until_done"
-    private const val KEY_PENDING = "pending_ack"
-    private const val KEY_NAG_COUNT = "nag_count"
+    private const val KEY_DONE_DAY = "done_day"
+    private const val KEY_DONE_COUNT = "done_count"
 
     const val DEFAULT_INTERVAL = 30
     const val MIN_INTERVAL = 5
@@ -37,13 +39,14 @@ object Prefs {
     fun alertMode(c: Context) = sp(c).getInt(KEY_ALERT, ALERT_BOTH)
     fun setAlertMode(c: Context, m: Int) = sp(c).edit().putInt(KEY_ALERT, m).apply()
 
-    fun repeatUntilDone(c: Context) = sp(c).getBoolean(KEY_REPEAT, true)
-    fun setRepeatUntilDone(c: Context, on: Boolean) = sp(c).edit().putBoolean(KEY_REPEAT, on).apply()
+    // "Done" taps today, for the little progress counter on the main screen.
+    private fun today() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
-    /** True while a reminder is showing and the user hasn't tapped Done yet. */
-    fun pendingAck(c: Context) = sp(c).getBoolean(KEY_PENDING, false)
-    fun setPendingAck(c: Context, on: Boolean) = sp(c).edit().putBoolean(KEY_PENDING, on).apply()
+    fun doneToday(c: Context): Int =
+        if (sp(c).getString(KEY_DONE_DAY, "") == today()) sp(c).getInt(KEY_DONE_COUNT, 0) else 0
 
-    fun nagCount(c: Context) = sp(c).getInt(KEY_NAG_COUNT, 0)
-    fun setNagCount(c: Context, n: Int) = sp(c).edit().putInt(KEY_NAG_COUNT, n).apply()
+    fun incrementDoneToday(c: Context) {
+        val n = doneToday(c) + 1
+        sp(c).edit().putString(KEY_DONE_DAY, today()).putInt(KEY_DONE_COUNT, n).apply()
+    }
 }

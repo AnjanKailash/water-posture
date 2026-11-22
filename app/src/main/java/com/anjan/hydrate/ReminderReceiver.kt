@@ -10,7 +10,6 @@ import android.content.Intent
 import android.graphics.drawable.Icon
 import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.RingtoneManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -18,52 +17,31 @@ import android.os.VibratorManager
 import android.provider.Settings
 
 /**
- * Main alarm: shows the reminder (unless Airplane mode / DND is on) and queues the next one.
- * Nag alarm: re-alerts every 2 minutes, up to 3 times, until the user taps Done.
- *
- * The notification itself is silent; the app vibrates and plays the sound directly,
- * because many phone brands mute sound/vibration for sideloaded apps' notifications.
+ * Fires on every interval: shows the reminder (unless Airplane mode / DND is on),
+ * rings the alarm tone once and/or vibrates, and queues the next reminder.
+ * The reminder stays on screen until the user taps Done.
  */
 class ReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         if (!Prefs.isEnabled(context)) return
 
-        if (intent.action == Scheduler.ACTION_NAG) {
-            handleNag(context)
-            return
-        }
-
         // Always queue the next one first, so a skipped reminder never stops the cycle.
         Scheduler.scheduleNext(context)
-        Scheduler.cancelNag(context)
-        Prefs.setPendingAck(context, false)
 
         if (isAirplaneModeOn(context) || isDndOn(context)) return  // stay silent
 
-        show(context)
-        if (Prefs.repeatUntilDone(context)) {
-            Prefs.setPendingAck(context, true)
-            Prefs.setNagCount(context, 0)
-            Scheduler.scheduleNag(context)
-        }
-    }
-
-    private fun handleNag(c: Context) {
-        if (!Prefs.pendingAck(c) || !Prefs.repeatUntilDone(c)) return
-        if (isAirplaneModeOn(c) || isDndOn(c)) return
-        val n = Prefs.nagCount(c) + 1
-        Prefs.setNagCount(c, n)
-        show(c)
-        if (n < Scheduler.MAX_NAGS) Scheduler.scheduleNag(c) else Prefs.setPendingAck(c, false)
+        // Keep the receiver alive while the alarm tone plays (a few seconds).
+        val pending = goAsync()
+        show(context) { pending.finish() }
     }
 
     companion object {
         const val NOTIFICATION_ID = 42
 
-        private const val CHANNEL = "reminders_v3"   // silent channel; app does the alerting
+        private const val CHANNEL = "reminders_v4"   // silent channel; the app does the alerting
         private val OLD_CHANNELS = listOf(
-            "reminders", "alert_sound_vibrate", "alert_vibrate", "alert_sound"
+            "reminders", "alert_sound_vibrate", "alert_vibrate", "alert_sound", "reminders_v3"
         )
 
         private val VIBRATION = longArrayOf(0, 700, 300, 700, 300, 700)
@@ -92,11 +70,14 @@ class ReminderReceiver : BroadcastReceiver() {
             }
         }
 
-        /** Vibrate and/or ring according to the chosen style and the phone's ringer mode. */
-        fun alert(c: Context) {
+        /**
+         * Vibrate and/or ring the alarm tone once, following the chosen style and the
+         * phone's ringer (OnePlus alert slider): Silent = nothing, Vibrate = buzz only.
+         */
+        private fun alert(c: Context, finished: () -> Unit) {
             val mode = Prefs.alertMode(c)
             val ringer = c.getSystemService(AudioManager::class.java).ringerMode
-            if (ringer == AudioManager.RINGER_MODE_SILENT) return  // phone is on Silent
+            if (ringer == AudioManager.RINGER_MODE_SILENT) { finished(); return }
 
             val wantVibe = mode == Prefs.ALERT_VIBRATE || mode == Prefs.ALERT_BOTH
             val wantSound = (mode == Prefs.ALERT_SOUND || mode == Prefs.ALERT_BOTH) &&
@@ -116,26 +97,13 @@ class ReminderReceiver : BroadcastReceiver() {
                 vibrator.vibrate(VibrationEffect.createWaveform(VIBRATION, -1), attrs)
             }
 
-            if (wantSound) {
-                val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                RingtoneManager.getRingtone(c, uri)?.apply {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        audioAttributes = AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                            .build()
-                    }
-                    play()
-                }
-            }
+            if (wantSound) AlarmSound.playOnce(c, finished) else finished()
         }
 
-        fun show(c: Context) {
+        fun show(c: Context, finished: () -> Unit = {}) {
             ensureChannel(c)
             val nm = c.getSystemService(NotificationManager::class.java)
 
-            // One tap on "Done" (or on the notification, or swiping it away) stops the repeats.
             val donePi = PendingIntent.getBroadcast(
                 c, 2002, Intent(c, DoneReceiver::class.java),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -143,18 +111,18 @@ class ReminderReceiver : BroadcastReceiver() {
 
             val n = Notification.Builder(c, CHANNEL)
                 .setSmallIcon(R.drawable.ic_water)
+                .setColor(0xFF1A8FD6.toInt())
                 .setContentTitle("💧 Drink water  •  🧍 Sit up straight")
-                .setContentText("Take a sip and fix your posture. Tap Done when finished.")
+                .setContentText("Take a sip, straighten your back, then tap Done.")
                 .setCategory(Notification.CATEGORY_REMINDER)
+                .setOngoing(true)            // stays until Done is tapped
                 .setAutoCancel(true)
                 .setContentIntent(donePi)
-                .setDeleteIntent(donePi)
                 .addAction(Notification.Action.Builder(null as Icon?, "Done ✓", donePi).build())
-                .setTimeoutAfter(Prefs.intervalMinutes(c) * 60_000L - 10_000L) // auto-clear before next
                 .build()
 
             nm.notify(NOTIFICATION_ID, n)
-            alert(c)
+            alert(c, finished)
         }
     }
 }

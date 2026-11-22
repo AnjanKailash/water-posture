@@ -2,144 +2,279 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F4F9FC">
+    android:background="@drawable/bg_main"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="24dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="36dp"
+        android:paddingBottom="32dp">
 
+        <!-- Header -->
         <TextView
+            android:id="@+id/greeting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="💧 🧍"
-            android:textSize="48sp"
-            android:layout_marginTop="24dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Water &amp; Posture"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="#0B3954"
-            android:layout_marginTop="8dp" />
-
-        <!-- The one big button: tap to start / stop -->
-        <Button
-            android:id="@+id/toggle"
-            android:layout_width="match_parent"
-            android:layout_height="88dp"
-            android:layout_marginTop="32dp"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:textColor="#CCE9FF"
             android:textSize="15sp"
-            android:textColor="#3D5A6C"
-            android:gravity="center" />
+            android:fontFamily="sans-serif-medium" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Remind me every"
-            android:textSize="16sp"
-            android:textColor="#3D5A6C"
-            android:layout_marginTop="36dp" />
+            android:layout_marginTop="4dp"
+            android:text="Stay hydrated,\nsit tall."
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:lineSpacingExtra="2dp"
+            android:fontFamily="sans-serif-black" />
 
+        <!-- Hero card: big on/off circle -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:id="@+id/heroCard"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_card"
+            android:elevation="6dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <Button
-                android:id="@+id/minus"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:text="−5"
-                android:textSize="18sp" />
+            <LinearLayout
+                android:id="@+id/toggle"
+                android:layout_width="184dp"
+                android:layout_height="184dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:elevation="4dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/toggleEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💧"
+                    android:textSize="46sp" />
+
+                <TextView
+                    android:id="@+id/toggleState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="26sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:id="@+id/toggleHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/interval"
-                android:layout_width="140dp"
+                android:id="@+id/status"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
                 android:gravity="center"
-                android:textSize="32sp"
-                android:textStyle="bold"
-                android:textColor="#0B3954" />
+                android:textColor="#0B2E4F"
+                android:textSize="17sp"
+                android:fontFamily="sans-serif-medium" />
 
-            <Button
-                android:id="@+id/plus"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:text="+5"
-                android:textSize="18sp" />
+            <TextView
+                android:id="@+id/countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="#6E8AA3"
+                android:textSize="14sp" />
+
+            <!-- Two little stat pills -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/statDone"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:textColor="#0B4F8A"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/statEvery"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:gravity="center"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"
+                    android:textColor="#0B4F8A"
+                    android:textSize="14sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- One-tap presets -->
+        <!-- Interval card -->
         <LinearLayout
-            android:id="@+id/presets"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="12dp" />
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:padding="20dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REMIND ME EVERY"
+                android:letterSpacing="0.12"
+                android:textColor="#6E8AA3"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/minus"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:gravity="center"
+                    android:text="−"
+                    android:textColor="#1468B8"
+                    android:textSize="26sp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/interval"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#0B2E4F"
+                        android:textSize="44sp"
+                        android:fontFamily="sans-serif-black" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="minutes"
+                        android:textColor="#6E8AA3"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/plus"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textColor="#1468B8"
+                    android:textSize="26sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/presets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal" />
+        </LinearLayout>
+
+        <!-- Alert style card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ALERT STYLE"
+                android:letterSpacing="0.12"
+                android:textColor="#6E8AA3"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <LinearLayout
+                android:id="@+id/alertModes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Plays your alarm tone once. The reminder stays until you tap Done."
+                android:textColor="#6E8AA3"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- One-time setup banner (only when precise timing isn't allowed) -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Alert me with"
-            android:textSize="16sp"
-            android:textColor="#3D5A6C"
-            android:layout_marginTop="32dp" />
-
-        <!-- Sound / Vibrate / Both -->
-        <LinearLayout
-            android:id="@+id/alertModes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp" />
-
-        <Button
-            android:id="@+id/repeat"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:textSize="15sp" />
-
-        <Button
             android:id="@+id/exact"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="Allow on-time reminders (one-time setup)"
+            android:layout_marginTop="16dp"
+            android:elevation="6dp"
+            android:padding="18dp"
+            android:text="⏰  Tap to allow on-time reminders (one-time setup)"
+            android:textColor="#5C3B00"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
             android:visibility="gone" />
 
-        <Button
+        <TextView
             android:id="@+id/test"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Show a test reminder"
-            android:textColor="#1A7FB8" />
+            android:layout_marginTop="20dp"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="▶  Try a reminder now"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:fontFamily="sans-serif-medium" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Stays silent while Airplane mode or Do Not Disturb is on."
-            android:textSize="13sp"
-            android:textColor="#6B8496"
-            android:gravity="center" />
+            android:gravity="center"
+            android:text="Silent in Airplane mode and Do Not Disturb.\nFollows your alert slider: Silent · Vibrate · Ring."
+            android:textColor="#CCE9FF"
+            android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>

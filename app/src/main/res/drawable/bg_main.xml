@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ocean gradient behind the whole screen -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:angle="300"
+        android:startColor="#0B3C7A"
+        android:centerColor="#1468B8"
+        android:endColor="#2BC0E4"
+        android:type="linear" />
+</shape>
