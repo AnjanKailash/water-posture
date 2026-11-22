@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import java.util.Calendar
 
 /** Schedules one alarm at a time; each alarm schedules the next one. */
 object Scheduler {
@@ -43,18 +44,43 @@ object Scheduler {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()
     }
 
-    const val PAUSED_CHECK_MINUTES = 5
+    /**
+     * Daily timetable: every day, reminders fall on start, start + interval, start + 2×interval…
+     * up to and including the end time. Slots during Airplane mode / DND are skipped,
+     * so the timetable never drifts. If end is earlier than start, the window runs past midnight.
+     */
+    fun nextSlot(c: Context, from: Long): Long {
+        val step = Prefs.intervalMinutes(c) * 60_000L
+        val startMin = Prefs.startMinutes(c)
+        var durationMin = (Prefs.endMinutes(c) - startMin + 1440) % 1440
+        if (durationMin == 0) durationMin = 1440  // same start and end = all day
+        val duration = durationMin * 60_000L
 
-    /** Schedule the next reminder [Prefs.intervalMinutes] from now. */
+        var best = Long.MAX_VALUE
+        for (dayOffset in -1..2) {
+            val windowStart = Calendar.getInstance().apply {
+                timeInMillis = from
+                add(Calendar.DAY_OF_MONTH, dayOffset)
+                set(Calendar.HOUR_OF_DAY, startMin / 60)
+                set(Calendar.MINUTE, startMin % 60)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            val windowEnd = windowStart + duration
+            val candidate = if (from < windowStart) windowStart else {
+                val slot = windowStart + ((from - windowStart) / step + 1) * step
+                if (slot <= windowEnd) slot else Long.MAX_VALUE
+            }
+            if (candidate < best) best = candidate
+        }
+        return best
+    }
+
+    /** Schedule the next slot on the timetable (30 s margin so a just-fired slot isn't reused). */
     fun scheduleNext(c: Context) =
-        scheduleAt(c, System.currentTimeMillis() + Prefs.intervalMinutes(c) * 60_000L)
+        scheduleAt(c, nextSlot(c, System.currentTimeMillis() + 30_000L))
 
-    /** While Airplane mode / DND is on, look again shortly to see if it has ended. */
-    fun schedulePausedCheck(c: Context) =
-        scheduleAt(c, System.currentTimeMillis() + PAUSED_CHECK_MINUTES * 60_000L)
-
-    /** Schedule the next reminder at an exact moment (e.g. a time the user picked). */
-    fun scheduleAt(c: Context, at: Long) {
+    private fun scheduleAt(c: Context, at: Long) {
         if (!Prefs.isEnabled(c)) return
         val am = c.getSystemService(AlarmManager::class.java)
         val pi = mainIntent(c)

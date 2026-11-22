@@ -96,7 +96,7 @@
                 android:textColor="#6E8AA3"
                 android:textSize="14sp" />
 
-            <!-- Control when the countdown starts -->
+            <!-- Daily window: tap to change start / end time -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -104,7 +104,7 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/restartNow"
+                    android:id="@+id/startTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -112,13 +112,12 @@
                     android:gravity="center"
                     android:paddingTop="12dp"
                     android:paddingBottom="12dp"
-                    android:text="↻  Start from now"
-                    android:textColor="#FFFFFF"
+                                        android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif-medium" />
 
                 <TextView
-                    android:id="@+id/pickTime"
+                    android:id="@+id/endTime"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -126,8 +125,7 @@
                     android:gravity="center"
                     android:paddingTop="12dp"
                     android:paddingBottom="12dp"
-                    android:text="🕒  Pick time"
-                    android:textColor="#FFFFFF"
+                                        android:textColor="#FFFFFF"
                     android:textSize="14sp"
                     android:fontFamily="sans-serif-medium" />
             </LinearLayout>

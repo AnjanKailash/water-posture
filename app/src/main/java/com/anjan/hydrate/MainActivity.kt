@@ -41,6 +41,8 @@ class MainActivity : Activity() {
     private lateinit var statEvery: TextView
     private lateinit var interval: TextView
     private lateinit var exact: TextView
+    private lateinit var startTimeView: TextView
+    private lateinit var endTimeView: TextView
 
     private val presetButtons = mutableListOf<Pair<Int, TextView>>()
     private val alertButtons = mutableListOf<Pair<Int, TextView>>()
@@ -142,20 +144,13 @@ class MainActivity : Activity() {
         val pillBg = { GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(blue, sky))
             .apply { cornerRadius = dp(18).toFloat() } }
 
-        findViewById<TextView>(R.id.restartNow).apply {
+        startTimeView = findViewById<TextView>(R.id.startTime).apply {
             background = pillBg()
-            setOnClickListener {
-                if (!Prefs.isEnabled(this@MainActivity)) this@MainActivity.setEnabled(true)
-                Prefs.setPausedByMode(this@MainActivity, false)
-                Scheduler.scheduleNext(this@MainActivity)
-                refresh()
-                toast("Timer restarted. Next at ${timeText(Prefs.nextAt(this@MainActivity))}")
-            }
+            setOnClickListener { pickWindowTime(isStart = true) }
         }
-
-        findViewById<TextView>(R.id.pickTime).apply {
+        endTimeView = findViewById<TextView>(R.id.endTime).apply {
             background = pillBg()
-            setOnClickListener { pickNextTime() }
+            setOnClickListener { pickWindowTime(isStart = false) }
         }
 
         // First launch: switch on straight away so it works with zero setup clicks.
@@ -167,12 +162,6 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        if (Prefs.isEnabled(this) && Prefs.pausedByMode(this) &&
-            !ReminderReceiver.isAirplaneModeOn(this) && !ReminderReceiver.isDndOn(this)) {
-            // Airplane mode / DND ended while the app was closed: start fresh from now.
-            Prefs.setPausedByMode(this, false)
-            Scheduler.scheduleNext(this)
-        }
         if (Prefs.isEnabled(this)) {
             val missed = Prefs.nextAt(this) < System.currentTimeMillis()
             val exactJustAllowed = awaitingExactPermission && Scheduler.canUseExact(this)
@@ -188,38 +177,42 @@ class MainActivity : Activity() {
         ticker.removeCallbacks(tick)
     }
 
-    /** Let the user choose exactly when the next reminder rings; it repeats from there. */
-    private fun pickNextTime() {
-        val now = Calendar.getInstance()
-        val suggest = Calendar.getInstance().apply {
-            add(Calendar.MINUTE, Prefs.intervalMinutes(this@MainActivity))
-        }
+    /** Change the daily start or end time; the timetable updates immediately. */
+    private fun pickWindowTime(isStart: Boolean) {
+        val current = if (isStart) Prefs.startMinutes(this) else Prefs.endMinutes(this)
         TimePickerDialog(this, { _, hour, minute ->
-            val at = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, hour)
-                set(Calendar.MINUTE, minute)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-                if (!after(now)) add(Calendar.DAY_OF_MONTH, 1)  // a past time means tomorrow
-            }
-            if (!Prefs.isEnabled(this)) setEnabled(true)
-            Prefs.setPausedByMode(this, false)
-            Scheduler.scheduleAt(this, at.timeInMillis)
+            val m = hour * 60 + minute
+            if (isStart) Prefs.setStartMinutes(this, m) else Prefs.setEndMinutes(this, m)
+            if (Prefs.isEnabled(this)) Scheduler.scheduleNext(this)
             refresh()
-            toast("Next reminder at ${timeText(at.timeInMillis)}, then every " +
-                  "${Prefs.intervalMinutes(this)} min")
-        }, suggest.get(Calendar.HOUR_OF_DAY), suggest.get(Calendar.MINUTE),
+            toast("Next reminder ${dayAndTime(Prefs.nextAt(this))}")
+        }, current / 60, current % 60,
             android.text.format.DateFormat.is24HourFormat(this)).show()
+    }
+
+    private fun minutesText(m: Int): String {
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, m / 60); set(Calendar.MINUTE, m % 60)
+        }
+        return DateFormat.getTimeInstance(DateFormat.SHORT).format(cal.time)
     }
 
     private fun timeText(t: Long): String =
         DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(t))
 
+    /** "at 9:30 AM" today, or "tomorrow at 9:00 AM". */
+    private fun dayAndTime(t: Long): String {
+        val target = Calendar.getInstance().apply { timeInMillis = t }
+        val today = Calendar.getInstance()
+        val sameDay = target.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
+                      target.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)
+        return if (sameDay) "at ${timeText(t)}" else "tomorrow at ${timeText(t)}"
+    }
+
     private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
     private fun setEnabled(on: Boolean) {
         Prefs.setEnabled(this, on)
-        Prefs.setPausedByMode(this, false)
         if (on) {
             askNotificationPermissionIfNeeded()
             Scheduler.scheduleNext(this)
@@ -262,16 +255,20 @@ class MainActivity : Activity() {
             !on -> { status.text = "Reminders are paused"; countdown.text = "Tap the circle to start" }
             ReminderReceiver.isAirplaneModeOn(this) -> {
                 status.text = "✈️  Airplane mode is on"
-                countdown.text = "Timer restarts when you turn it off"
+                countdown.text = "Silent for now · next slot ${dayAndTime(next)}"
             }
             ReminderReceiver.isDndOn(this) -> {
                 status.text = "🌙  Do Not Disturb is on"
-                countdown.text = "Timer restarts when you turn it off"
+                countdown.text = "Silent for now · next slot ${dayAndTime(next)}"
             }
             next > 0 -> {
-                status.text = "Next at " + DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(next))
+                status.text = "Next " + dayAndTime(next)
                 val left = ((next - System.currentTimeMillis()) / 60_000L).coerceAtLeast(0)
-                countdown.text = if (left < 1) "any moment now" else "in $left min"
+                countdown.text = when {
+                    left < 1 -> "any moment now"
+                    left < 60 -> "in $left min"
+                    else -> "in ${left / 60} h ${left % 60} min"
+                }
             }
             else -> { status.text = "Running"; countdown.text = "" }
         }
@@ -279,6 +276,8 @@ class MainActivity : Activity() {
         val done = Prefs.doneToday(this)
         statDone.text = "💧  $done done today"
         statEvery.text = "⏱  every $mins min"
+        startTimeView.text = "☀️  Starts\n" + minutesText(Prefs.startMinutes(this))
+        endTimeView.text = "🌙  Ends\n" + minutesText(Prefs.endMinutes(this))
 
         interval.text = "$mins"
 

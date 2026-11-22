@@ -34,23 +34,12 @@ class ReminderReceiver : BroadcastReceiver() {
             return
         }
 
-        if (isAirplaneModeOn(context) || isDndOn(context)) {
-            // Stay silent and check again in a few minutes.
-            Prefs.setPausedByMode(context, true)
-            Scheduler.schedulePausedCheck(context)
-            return
-        }
-
-        if (Prefs.pausedByMode(context)) {
-            // Airplane mode / DND just ended: start a fresh countdown from now.
-            Prefs.setPausedByMode(context, false)
-            Scheduler.scheduleNext(context)
-            return
-        }
-
-        // Normal reminder: queue the next one first, so the cycle never stops.
+        // Queue the next slot on the timetable first, so the cycle never stops.
         Scheduler.scheduleNext(context)
         Scheduler.cancelSnooze(context)  // a fresh reminder replaces any pending snooze
+
+        // During Airplane mode / DND this slot is skipped silently; the next slot still rings.
+        if (isAirplaneModeOn(context) || isDndOn(context)) return
 
         // Keep the receiver alive while the alarm tone plays (a few seconds).
         val pending = goAsync()
