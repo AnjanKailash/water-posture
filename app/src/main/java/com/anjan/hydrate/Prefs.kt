@@ -23,6 +23,7 @@ object Prefs {
     const val ALERT_SOUND = 0
     const val ALERT_VIBRATE = 1
     const val ALERT_BOTH = 2
+    const val ALERT_NONE = 3   // notification only: no sound, no vibration
 
     private fun sp(c: Context) = c.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 

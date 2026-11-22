@@ -51,7 +51,8 @@ class MainActivity : Activity() {
     private val alertOptions = listOf(
         Triple(Prefs.ALERT_SOUND, "🔔", "Sound"),
         Triple(Prefs.ALERT_VIBRATE, "📳", "Vibrate"),
-        Triple(Prefs.ALERT_BOTH, "🔔📳", "Both")
+        Triple(Prefs.ALERT_BOTH, "🔔📳", "Both"),
+        Triple(Prefs.ALERT_NONE, "🔕", "Notify only")
     )
 
     private val ticker = Handler(Looper.getMainLooper())
@@ -110,6 +111,7 @@ class MainActivity : Activity() {
         val modes = findViewById<LinearLayout>(R.id.alertModes)
         alertOptions.forEachIndexed { i, (mode, emoji, label) ->
             val chip = chip("$emoji\n$label").apply {
+                textSize = 13f
                 setPadding(0, dp(12), 0, dp(12))
                 setOnClickListener {
                     Prefs.setAlertMode(this@MainActivity, mode)

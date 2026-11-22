@@ -86,6 +86,7 @@ class ReminderReceiver : BroadcastReceiver() {
          */
         private fun alert(c: Context, finished: () -> Unit) {
             val mode = Prefs.alertMode(c)
+            if (mode == Prefs.ALERT_NONE) { finished(); return }  // notification only
             val ringer = c.getSystemService(AudioManager::class.java).ringerMode
             if (ringer == AudioManager.RINGER_MODE_SILENT) { finished(); return }
 
