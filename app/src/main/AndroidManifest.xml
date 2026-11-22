@@ -10,10 +10,6 @@
     <!-- Restart reminders after the phone reboots -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Blink reminder: keeps buzzing every few seconds with the screen off -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -34,14 +30,7 @@
         <activity android:name=".ActivitiesActivity" android:exported="false" />
         <activity android:name=".ProfileActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
 
-        <service
-            android:name=".BlinkService"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Repeating gentle vibration reminding the user to blink" />
-        </service>
+        <receiver android:name=".BlinkReceiver" android:exported="false" />
 
         <receiver android:name=".SwapReceiver" android:exported="false" />
         <receiver android:name=".ReminderReceiver" android:exported="false" />

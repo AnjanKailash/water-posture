@@ -96,6 +96,11 @@ object Prefs {
         else emptyList()
 
     // ---- Blink reminder ----
+    fun blinkOn(c: Context) = sp(c).getBoolean("blink_on", false)
+    fun setBlinkOn(c: Context, on: Boolean) = sp(c).edit().putBoolean("blink_on", on).apply()
+    fun blinkUntil(c: Context) = sp(c).getLong("blink_until", 0L)
+    fun setBlinkUntil(c: Context, t: Long) = sp(c).edit().putLong("blink_until", t).apply()
+
     fun blinkSeconds(c: Context) = sp(c).getInt("blink_seconds", 20)
     fun setBlinkSeconds(c: Context, s: Int) = sp(c).edit().putInt("blink_seconds", s).apply()
 

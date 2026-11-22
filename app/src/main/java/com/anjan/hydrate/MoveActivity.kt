@@ -246,17 +246,18 @@ class MoveActivity : Activity() {
         card.addView(Ui.label(this, "Repeat"))
         card.addView(Ui.text(this,
             "A gentle double buzz every ${Prefs.blinkSeconds(this)} seconds to remind you to blink and look away. " +
-            "Keeps going with the screen off until you stop it. Silent in DND and Airplane mode.",
+            "Keeps going with the screen off until you stop it (a small ⏰ icon shows while it's on). " +
+            "Silent in DND and Airplane mode.",
             14f, Ui.MUTED), Ui.topMargin(this, 8))
         val btn = Ui.button(this, "", true)
         fun paint() {
-            val on = BlinkService.running
+            val on = Blink.isRunning(this)
             btn.text = if (on) "■  Stop buzzing" else "🔁  Buzz every ${Prefs.blinkSeconds(this)} s until I stop"
             btn.background = if (on) Ui.rounded(this, android.graphics.Color.parseColor("#E5484D"), 26)
                              else Ui.gradient(this, 26)
         }
         btn.setOnClickListener {
-            if (BlinkService.running) BlinkService.stop(this) else BlinkService.start(this)
+            if (Blink.isRunning(this)) Blink.stop(this) else Blink.start(this)
             btn.postDelayed({ paint() }, 300)
         }
         paint()

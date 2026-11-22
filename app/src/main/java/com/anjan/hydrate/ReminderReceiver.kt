@@ -131,7 +131,6 @@ class ReminderReceiver : BroadcastReceiver() {
                     .build()
                 @Suppress("DEPRECATION")
                 vibrator.vibrate(VibrationEffect.createWaveform(VIBRATION, -1), attrs)
-                if (BlinkService.running) BlinkService.resumeAfterOtherVibration()
             }
 
             if (wantSound) AlarmSound.playOnce(c, finished) else finished()

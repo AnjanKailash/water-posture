@@ -11,8 +11,8 @@ android {
         applicationId = "com.anjan.hydrate"
         minSdk = 26          // Android 8.0+
         targetSdk = 35
-        versionCode = 17
-        versionName = "3.7"
+        versionCode = 18
+        versionName = "3.8"
     }
 
     // Fixed signing key so every new APK installs over the previous one.

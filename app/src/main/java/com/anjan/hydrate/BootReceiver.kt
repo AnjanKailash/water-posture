@@ -8,5 +8,6 @@ import android.content.Intent
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (Prefs.isEnabled(context)) Scheduler.scheduleNext(context)
+        Blink.resumeIfRunning(context)
     }
 }
