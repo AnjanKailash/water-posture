@@ -237,7 +237,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Plays your alarm tone once. The reminder stays until you tap Done."
+                android:text="Plays your alarm tone once. The reminder stays until you tap Done, or Snooze to be reminded again in 5 min."
                 android:textColor="#6E8AA3"
                 android:textSize="13sp" />
         </LinearLayout>

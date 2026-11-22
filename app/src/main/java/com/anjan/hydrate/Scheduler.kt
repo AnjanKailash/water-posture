@@ -16,6 +16,28 @@ object Scheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+    const val ACTION_SNOOZE_FIRE = "com.anjan.hydrate.SNOOZE_FIRE"
+    const val SNOOZE_MINUTES = 5
+
+    private fun snoozeIntent(c: Context): PendingIntent =
+        PendingIntent.getBroadcast(
+            c, 1003,
+            Intent(c, ReminderReceiver::class.java).setAction(ACTION_SNOOZE_FIRE),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+    /** Bring the reminder back in [SNOOZE_MINUTES] without touching the regular schedule. */
+    fun scheduleSnooze(c: Context) {
+        val at = System.currentTimeMillis() + SNOOZE_MINUTES * 60_000L
+        val am = c.getSystemService(AlarmManager::class.java)
+        val pi = snoozeIntent(c)
+        if (canUseExact(c)) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+        else am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+    }
+
+    fun cancelSnooze(c: Context) =
+        c.getSystemService(AlarmManager::class.java).cancel(snoozeIntent(c))
+
     fun canUseExact(c: Context): Boolean {
         val am = c.getSystemService(AlarmManager::class.java)
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()
@@ -34,6 +56,7 @@ object Scheduler {
 
     fun cancel(c: Context) {
         c.getSystemService(AlarmManager::class.java).cancel(mainIntent(c))
+        cancelSnooze(c)
         Prefs.setNextAt(c, 0L)
     }
 }

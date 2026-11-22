@@ -9,6 +9,7 @@ import android.content.Intent
 class DoneReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         AlarmSound.stop()
+        Scheduler.cancelSnooze(context)
         context.getSystemService(NotificationManager::class.java)
             .cancel(ReminderReceiver.NOTIFICATION_ID)
         Prefs.incrementDoneToday(context)

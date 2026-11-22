@@ -26,8 +26,17 @@ class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (!Prefs.isEnabled(context)) return
 
+        if (intent.action == Scheduler.ACTION_SNOOZE_FIRE) {
+            // Snoozed reminder coming back: show it again, regular schedule untouched.
+            if (isAirplaneModeOn(context) || isDndOn(context)) return
+            val pending = goAsync()
+            show(context) { pending.finish() }
+            return
+        }
+
         // Always queue the next one first, so a skipped reminder never stops the cycle.
         Scheduler.scheduleNext(context)
+        Scheduler.cancelSnooze(context)  // a fresh reminder replaces any pending snooze
 
         if (isAirplaneModeOn(context) || isDndOn(context)) return  // stay silent
 
@@ -109,6 +118,11 @@ class ReminderReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
+            val snoozePi = PendingIntent.getBroadcast(
+                c, 2003, Intent(c, SnoozeReceiver::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
             val n = Notification.Builder(c, CHANNEL)
                 .setSmallIcon(R.drawable.ic_water)
                 .setColor(0xFF1A8FD6.toInt())
@@ -118,6 +132,8 @@ class ReminderReceiver : BroadcastReceiver() {
                 .setOngoing(true)            // stays until Done is tapped
                 .setAutoCancel(true)
                 .setContentIntent(donePi)
+                .addAction(Notification.Action.Builder(null as Icon?,
+                    "Snooze ${Scheduler.SNOOZE_MINUTES} min", snoozePi).build())
                 .addAction(Notification.Action.Builder(null as Icon?, "Done ✓", donePi).build())
                 .build()
 
