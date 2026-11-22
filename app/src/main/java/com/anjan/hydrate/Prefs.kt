@@ -81,6 +81,10 @@ object Prefs {
     fun setMealWalkDay(c: Context, meal: String, d: String) =
         sp(c).edit().putString("walk_day_$meal", d).apply()
 
+    // ---- Blink reminder ----
+    fun blinkSeconds(c: Context) = sp(c).getInt("blink_seconds", 20)
+    fun setBlinkSeconds(c: Context, s: Int) = sp(c).edit().putInt("blink_seconds", s).apply()
+
     // ---- Optional profile (stored only on this phone) ----
     const val SEX_UNSET = 0
     const val SEX_MALE = 1

@@ -165,6 +165,17 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Blink reminder card (filled in code) -->
+        <LinearLayout
+            android:id="@+id/blinkCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:padding="20dp" />
+
         <!-- Interval card -->
         <LinearLayout
             android:layout_width="match_parent"
