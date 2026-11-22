@@ -24,6 +24,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".MoveActivity" android:exported="false" />
+        <activity android:name=".ActivitiesActivity" android:exported="false" />
+
+        <receiver android:name=".SwapReceiver" android:exported="false" />
         <receiver android:name=".ReminderReceiver" android:exported="false" />
         <receiver android:name=".DoneReceiver" android:exported="false" />
         <receiver android:name=".SnoozeReceiver" android:exported="false" />

@@ -46,6 +46,35 @@ object Prefs {
     fun alertMode(c: Context) = sp(c).getInt(KEY_ALERT, ALERT_BOTH)
     fun setAlertMode(c: Context, m: Int) = sp(c).edit().putInt(KEY_ALERT, m).apply()
 
+    // ---- Activities ("move with each reminder") ----
+    const val MOVE_SMART = 0
+    const val MOVE_PICKS = 1
+
+    fun moveEnabled(c: Context) = sp(c).getBoolean("move_on", true)
+    fun setMoveEnabled(c: Context, on: Boolean) = sp(c).edit().putBoolean("move_on", on).apply()
+
+    fun moveMode(c: Context) = sp(c).getInt("move_mode", MOVE_SMART)
+    fun setMoveMode(c: Context, m: Int) = sp(c).edit().putInt("move_mode", m).apply()
+
+    fun selectedMoves(c: Context): Set<String> =
+        sp(c).getStringSet("move_picks", null)?.toSet() ?: Moves.all.map { it.id }.toSet()
+    fun setSelectedMoves(c: Context, ids: Set<String>) =
+        sp(c).edit().putStringSet("move_picks", HashSet(ids)).apply()
+
+    fun lunchMinutes(c: Context) = sp(c).getInt("lunch_min", 13 * 60)
+    fun setLunchMinutes(c: Context, m: Int) = sp(c).edit().putInt("lunch_min", m).apply()
+
+    fun currentMove(c: Context): String? = sp(c).getString("move_current", null)
+    fun setCurrentMove(c: Context, id: String) = sp(c).edit().putString("move_current", id).apply()
+
+    fun recentMoves(c: Context): List<String> =
+        (sp(c).getString("move_recent", "") ?: "").split(",").filter { it.isNotEmpty() }
+    fun pushRecentMove(c: Context, id: String) =
+        sp(c).edit().putString("move_recent", (recentMoves(c) + id).takeLast(5).joinToString(",")).apply()
+
+    fun lunchWalkDay(c: Context): String = sp(c).getString("lunch_walk_day", "") ?: ""
+    fun setLunchWalkDay(c: Context, d: String) = sp(c).edit().putString("lunch_walk_day", d).apply()
+
     // "Done" taps today, for the little progress counter on the main screen.
     private fun today() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 

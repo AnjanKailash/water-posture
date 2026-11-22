@@ -42,6 +42,8 @@ class MainActivity : Activity() {
     private lateinit var interval: TextView
     private lateinit var exact: TextView
     private lateinit var startTimeView: TextView
+    private lateinit var moveSummary: TextView
+    private lateinit var moveToggle: TextView
     private lateinit var endTimeView: TextView
 
     private val presetButtons = mutableListOf<Pair<Int, TextView>>()
@@ -139,6 +141,7 @@ class MainActivity : Activity() {
             }
             setOnClickListener {
                 askNotificationPermissionIfNeeded()
+                if (Prefs.moveEnabled(this@MainActivity)) Recommender.pickNext(this@MainActivity)
                 ReminderReceiver.show(this@MainActivity)
             }
         }
@@ -153,6 +156,20 @@ class MainActivity : Activity() {
         endTimeView = findViewById<TextView>(R.id.endTime).apply {
             background = pillBg()
             setOnClickListener { pickWindowTime(isStart = false) }
+        }
+
+        moveSummary = findViewById(R.id.moveSummary)
+        moveToggle = findViewById<TextView>(R.id.moveToggle).apply {
+            setOnClickListener {
+                Prefs.setMoveEnabled(this@MainActivity, !Prefs.moveEnabled(this@MainActivity))
+                refresh()
+            }
+        }
+        findViewById<TextView>(R.id.moveBrowse).apply {
+            background = pillBg()
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, ActivitiesActivity::class.java))
+            }
         }
 
         // First launch: switch on straight away so it works with zero setup clicks.
@@ -278,6 +295,22 @@ class MainActivity : Activity() {
         val done = Prefs.doneToday(this)
         statDone.text = "💧  $done done today"
         statEvery.text = "⏱  every $mins min"
+        val moveOn = Prefs.moveEnabled(this)
+        moveToggle.text = if (moveOn) "✓  On" else "Off"
+        moveToggle.setTextColor(if (moveOn) Color.WHITE else navy)
+        moveToggle.background = if (moveOn)
+            GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(blue, sky))
+                .apply { cornerRadius = dp(18).toFloat() }
+        else rounded(mist, 18f)
+        moveSummary.text = when {
+            !moveOn -> "Water reminders only. Turn on to add a quick push-up, stretch, " +
+                       "brain game or walk to each reminder."
+            Prefs.moveMode(this) == Prefs.MOVE_SMART ->
+                "✨ Smart picks — a healthy mix for the time of day.\n🍱 Walk suggested after lunch (" +
+                minutesText(Prefs.lunchMinutes(this)) + ")."
+            else -> "✋ My picks — ${Prefs.selectedMoves(this).size} activities chosen.\n" +
+                    "🍱 Lunch at " + minutesText(Prefs.lunchMinutes(this)) + "."
+        }
         startTimeView.text = "☀️  Starts\n" + minutesText(Prefs.startMinutes(this))
         endTimeView.text = "🌙  Ends\n" + minutesText(Prefs.endMinutes(this))
 

@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Stay hydrated,\nsit tall."
+            android:text="Sip. Move.\nFeel better."
             android:textColor="#FFFFFF"
             android:textSize="32sp"
             android:lineSpacingExtra="2dp"
@@ -276,6 +276,67 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
+        <!-- Activity card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:elevation="6dp"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MOVE WITH EACH REMINDER"
+                android:letterSpacing="0.12"
+                android:textColor="#6E8AA3"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/moveSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="#0B2E4F"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/moveToggle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium" />
+
+                <TextView
+                    android:id="@+id/moveBrowse"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:gravity="center"
+                    android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
+                    android:text="Choose activities  ›"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
+        </LinearLayout>
+
         <!-- One-time setup banner (only when precise timing isn't allowed) -->
         <TextView
             android:id="@+id/exact"
@@ -325,7 +386,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:lineSpacingExtra="4dp"
-                android:text="🗓  Reminders ring every day between your Start and End time, on a fixed timetable.\n     Example: start 9:00, every 30 min → 9:00, 9:30, 10:00 …\n\n🌙  It never rings while Do Not Disturb or Airplane mode is on. Those slots are simply skipped.\n\n🔁  When you switch them off, it continues on the same timetable.\n     Example: DND ends at 9:05 → next reminder at 9:30.\n\n🔔  Alert style: Sound, Vibrate, Both, or Notify only (the reminder appears with no sound or buzz).\n\n🎚  Your phone\'s alert slider also applies: on Silent it stays quiet, on Vibrate it only buzzes."
+                android:text="🗓  Reminders ring every day between your Start and End time, on a fixed timetable.\n     Example: start 9:00, every 30 min → 9:00, 9:30, 10:00 …\n\n🌙  It never rings while Do Not Disturb or Airplane mode is on. Those slots are simply skipped.\n\n🔁  When you switch them off, it continues on the same timetable.\n     Example: DND ends at 9:05 → next reminder at 9:30.\n\n💪  Each reminder can suggest a quick activity: push-ups, a stretch, a brain game or a walk after lunch. Tap the reminder for step-by-step instructions, or Swap for something else.\n\n🔔  Alert style: Sound, Vibrate, Both, or Notify only (the reminder appears with no sound or buzz).\n\n🎚  Your phone\'s alert slider also applies: on Silent it stays quiet, on Vibrate it only buzzes."
                 android:textColor="#E6F4FF"
                 android:textSize="13sp" />
         </LinearLayout>

@@ -41,6 +41,9 @@ class ReminderReceiver : BroadcastReceiver() {
         // During Airplane mode / DND this slot is skipped silently; the next slot still rings.
         if (isAirplaneModeOn(context) || isDndOn(context)) return
 
+        // A fresh activity for each new reminder (snoozed ones keep theirs).
+        if (Prefs.moveEnabled(context)) Recommender.pickNext(context)
+
         // Keep the receiver alive while the alarm tone plays (a few seconds).
         val pending = goAsync()
         show(context) { pending.finish() }
@@ -70,7 +73,7 @@ class ReminderReceiver : BroadcastReceiver() {
             OLD_CHANNELS.forEach { nm.deleteNotificationChannel(it) }
             if (nm.getNotificationChannel(CHANNEL) == null) {
                 nm.createNotificationChannel(
-                    NotificationChannel(CHANNEL, "Water & posture reminders",
+                    NotificationChannel(CHANNEL, "Sip & Move reminders",
                         NotificationManager.IMPORTANCE_HIGH).apply {
                         description = "Reminds you to drink water and sit up straight"
                         setSound(null, null)
@@ -111,7 +114,7 @@ class ReminderReceiver : BroadcastReceiver() {
             if (wantSound) AlarmSound.playOnce(c, finished) else finished()
         }
 
-        fun show(c: Context, finished: () -> Unit = {}) {
+        fun show(c: Context, finished: () -> Unit = {}, withAlert: Boolean = true) {
             ensureChannel(c)
             val nm = c.getSystemService(NotificationManager::class.java)
 
@@ -125,22 +128,48 @@ class ReminderReceiver : BroadcastReceiver() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val n = Notification.Builder(c, CHANNEL)
+            val move = if (Prefs.moveEnabled(c))
+                Recommender.current(c) ?: Recommender.pickNext(c) else null
+
+            val title = if (move != null) "💧 Drink water  •  ${move.emoji} ${move.name}"
+                        else "💧 Drink water  •  🧍 Sit up straight"
+            val text = move?.summary ?: "Take a sip, straighten your back, then tap Done."
+
+            val b = Notification.Builder(c, CHANNEL)
                 .setSmallIcon(R.drawable.ic_water)
                 .setColor(0xFF1A8FD6.toInt())
-                .setContentTitle("💧 Drink water  •  🧍 Sit up straight")
-                .setContentText("Take a sip, straighten your back, then tap Done.")
+                .setContentTitle(title)
+                .setContentText(text)
                 .setCategory(Notification.CATEGORY_REMINDER)
                 .setOngoing(true)            // stays until Done is tapped
                 .setAutoCancel(true)
-                .setContentIntent(donePi)
                 .addAction(Notification.Action.Builder(null as Icon?,
                     "Snooze ${Scheduler.SNOOZE_MINUTES} min", snoozePi).build())
-                .addAction(Notification.Action.Builder(null as Icon?, "Done ✓", donePi).build())
-                .build()
 
-            nm.notify(NOTIFICATION_ID, n)
-            alert(c, finished)
+            if (move != null) {
+                // Tap the reminder to open the how-to page for this activity.
+                val howToPi = PendingIntent.getActivity(
+                    c, 2004,
+                    Intent(c, MoveActivity::class.java)
+                        .putExtra(MoveActivity.EXTRA_FROM_REMINDER, true)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                val swapPi = PendingIntent.getBroadcast(
+                    c, 2005, Intent(c, SwapReceiver::class.java),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                b.setContentIntent(howToPi)
+                    .setStyle(Notification.BigTextStyle()
+                        .bigText("$text\nTap for step-by-step instructions."))
+                    .addAction(Notification.Action.Builder(null as Icon?, "🔀 Swap", swapPi).build())
+            } else {
+                b.setContentIntent(donePi)
+            }
+            b.addAction(Notification.Action.Builder(null as Icon?, "Done ✓", donePi).build())
+
+            nm.notify(NOTIFICATION_ID, b.build())
+            if (withAlert) alert(c, finished) else finished()
         }
     }
 }
