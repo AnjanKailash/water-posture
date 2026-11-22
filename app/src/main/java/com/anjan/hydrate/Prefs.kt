@@ -72,8 +72,27 @@ object Prefs {
     fun pushRecentMove(c: Context, id: String) =
         sp(c).edit().putString("move_recent", (recentMoves(c) + id).takeLast(5).joinToString(",")).apply()
 
-    fun lunchWalkDay(c: Context): String = sp(c).getString("lunch_walk_day", "") ?: ""
-    fun setLunchWalkDay(c: Context, d: String) = sp(c).edit().putString("lunch_walk_day", d).apply()
+    fun breakfastMinutes(c: Context) = sp(c).getInt("breakfast_min", 8 * 60 + 30)
+    fun setBreakfastMinutes(c: Context, m: Int) = sp(c).edit().putInt("breakfast_min", m).apply()
+    fun dinnerMinutes(c: Context) = sp(c).getInt("dinner_min", 20 * 60 + 30)
+    fun setDinnerMinutes(c: Context, m: Int) = sp(c).edit().putInt("dinner_min", m).apply()
+
+    fun mealWalkDay(c: Context, meal: String): String = sp(c).getString("walk_day_$meal", "") ?: ""
+    fun setMealWalkDay(c: Context, meal: String, d: String) =
+        sp(c).edit().putString("walk_day_$meal", d).apply()
+
+    // ---- Optional profile (stored only on this phone) ----
+    const val SEX_UNSET = 0
+    const val SEX_MALE = 1
+    const val SEX_FEMALE = 2
+    const val SEX_OTHER = 3
+
+    fun age(c: Context) = sp(c).getInt("age", 0)
+    fun setAge(c: Context, v: Int) = sp(c).edit().putInt("age", v).apply()
+    fun weightKg(c: Context) = sp(c).getInt("weight_kg", 0)
+    fun setWeightKg(c: Context, v: Int) = sp(c).edit().putInt("weight_kg", v).apply()
+    fun sex(c: Context) = sp(c).getInt("sex", SEX_UNSET)
+    fun setSex(c: Context, v: Int) = sp(c).edit().putInt("sex", v).apply()
 
     // "Done" taps today, for the little progress counter on the main screen.
     private fun today() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())

@@ -20,7 +20,6 @@ class ActivitiesActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        build()
     }
 
     private fun build() {
@@ -47,30 +46,49 @@ class ActivitiesActivity : Activity() {
         val modeCard = Ui.card(this)
         modeCard.addView(Ui.label(this, "How should we choose?"))
         modeCard.addView(modeTile("✨  Smart picks",
-            "A healthy mix chosen for the time of day: stretches in the morning, a walk after lunch, " +
-            "energy boosters in the afternoon, nothing heavy right after eating.",
+            "We recommend what's best for you: stretches in the morning, a walk after lunch and dinner, " +
+            "energy boosters in the afternoon, nothing strenuous right after meals, and gentler options " +
+            "if you're 60+.",
             mode == Prefs.MOVE_SMART) { Prefs.setMoveMode(this, Prefs.MOVE_SMART); build() },
             Ui.topMargin(this, 12))
         modeCard.addView(modeTile("✋  My picks",
-            "Only the activities you tick below. We'll still mix them up so it doesn't get boring.",
+            "You choose. Only the activities you tick below — we'll still mix them up and keep " +
+            "strenuous ones away from mealtimes.",
             mode == Prefs.MOVE_PICKS) { Prefs.setMoveMode(this, Prefs.MOVE_PICKS); build() },
             Ui.topMargin(this, 10))
         col.addView(modeCard, Ui.topMargin(this, 16))
 
-        // Lunch time
-        val lunchCard = Ui.card(this)
-        lunchCard.addView(Ui.label(this, "Lunch time"))
-        val lunch = Prefs.lunchMinutes(this)
-        val lunchBtn = Ui.button(this, "🍱  Lunch at ${timeText(lunch)}   ✎", false)
-        lunchBtn.setOnClickListener {
-            TimePickerDialog(this, { _, h, m -> Prefs.setLunchMinutes(this, h * 60 + m); build() },
-                lunch / 60, lunch % 60, android.text.format.DateFormat.is24HourFormat(this)).show()
+        // About you
+        val me = Ui.card(this)
+        me.addView(Ui.label(this, "About you (optional)"))
+        me.addView(Ui.text(this, profileSummary(), 15f, Ui.NAVY), Ui.topMargin(this, 10))
+        me.addView(Ui.button(this, if (Profile.hasProfile(this)) "✎  Edit" else "Add age, weight & sex", false)
+            .apply {
+                setOnClickListener {
+                    startActivity(Intent(this@ActivitiesActivity, ProfileActivity::class.java))
+                }
+            }, Ui.topMargin(this, 12))
+        col.addView(me, Ui.topMargin(this, 16))
+
+        // Meal times
+        val mealCard = Ui.card(this)
+        mealCard.addView(Ui.label(this, "Meal times"))
+        mealCard.addView(Ui.text(this,
+            "No strenuous moves for an hour after eating. After lunch and dinner we suggest a 15–30 min walk.",
+            13f, Ui.MUTED), Ui.topMargin(this, 8))
+        listOf(
+            Triple("🍳  Breakfast", Prefs.breakfastMinutes(this)) { m: Int -> Prefs.setBreakfastMinutes(this, m) },
+            Triple("🍱  Lunch", Prefs.lunchMinutes(this)) { m: Int -> Prefs.setLunchMinutes(this, m) },
+            Triple("🍽  Dinner", Prefs.dinnerMinutes(this)) { m: Int -> Prefs.setDinnerMinutes(this, m) }
+        ).forEach { (label, value, save) ->
+            val btn = Ui.button(this, "$label  ·  ${timeText(value)}   ✎", false)
+            btn.setOnClickListener {
+                TimePickerDialog(this, { _, h, mm -> save(h * 60 + mm); build() },
+                    value / 60, value % 60, android.text.format.DateFormat.is24HourFormat(this)).show()
+            }
+            mealCard.addView(btn, Ui.topMargin(this, 10))
         }
-        lunchCard.addView(lunchBtn, Ui.topMargin(this, 12))
-        lunchCard.addView(Ui.text(this,
-            "The first reminder after lunch suggests a 15–30 minute walk.", 13f, Ui.MUTED),
-            Ui.topMargin(this, 10))
-        col.addView(lunchCard, Ui.topMargin(this, 16))
+        col.addView(mealCard, Ui.topMargin(this, 16))
 
         // Library, grouped by category
         val picksMode = mode == Prefs.MOVE_PICKS
@@ -126,7 +144,7 @@ class ActivitiesActivity : Activity() {
                             .putExtra(MoveActivity.EXTRA_MOVE_ID, m.id))
                     }
                 }
-                info.addView(Ui.text(this, "${m.emoji}  ${m.name}", 16f, Ui.NAVY, "sans-serif-medium"))
+                info.addView(Ui.text(this, "${m.emoji}  ${m.title(this@ActivitiesActivity)}", 16f, Ui.NAVY, "sans-serif-medium"))
                 info.addView(Ui.text(this, m.summary, 13f, Ui.MUTED))
                 row.addView(info, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
                 row.addView(Ui.text(this, "›", 24f, Ui.MUTED).apply {
@@ -151,6 +169,27 @@ class ActivitiesActivity : Activity() {
         tile.addView(Ui.text(this, body, 13f, if (selected) Ui.ON_BLUE else Ui.MUTED),
             Ui.topMargin(this, 4))
         return tile
+    }
+
+    private fun profileSummary(): String {
+        if (!Profile.hasProfile(this))
+            return "Tell us a little about you and we'll adjust reps, skip moves that aren't suitable, " +
+                   "and suggest how much to drink."
+        val parts = mutableListOf<String>()
+        if (Prefs.age(this) > 0) parts += "${Prefs.age(this)} yrs"
+        if (Prefs.weightKg(this) > 0) parts += "${Prefs.weightKg(this)} kg"
+        when (Prefs.sex(this)) {
+            Prefs.SEX_MALE -> parts += "Male"
+            Prefs.SEX_FEMALE -> parts += "Female"
+            Prefs.SEX_OTHER -> parts += "Prefer not to say"
+        }
+        return "👤  " + parts.joinToString("  ·  ") +
+               "\n💧  About ${Profile.dailyWaterMl(this) / 100 / 10.0} L a day → ~${Profile.mlPerReminder(this)} ml per reminder"
+    }
+
+    override fun onResume() {
+        super.onResume()
+        build()  // refresh after editing the profile
     }
 
     private fun timeText(m: Int): String {

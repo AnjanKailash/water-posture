@@ -26,6 +26,7 @@
 
         <activity android:name=".MoveActivity" android:exported="false" />
         <activity android:name=".ActivitiesActivity" android:exported="false" />
+        <activity android:name=".ProfileActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
 
         <receiver android:name=".SwapReceiver" android:exported="false" />
         <receiver android:name=".ReminderReceiver" android:exported="false" />

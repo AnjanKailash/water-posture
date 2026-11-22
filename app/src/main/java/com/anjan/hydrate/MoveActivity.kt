@@ -54,7 +54,7 @@ class MoveActivity : Activity() {
         // Hero card
         val hero = Ui.card(this).apply { gravity = Gravity.CENTER_HORIZONTAL }
         hero.addView(Ui.text(this, move.emoji, 64f, Ui.NAVY).apply { gravity = Gravity.CENTER })
-        hero.addView(Ui.text(this, move.name, 26f, Ui.NAVY, "sans-serif-black").apply {
+        hero.addView(Ui.text(this, move.title(this), 26f, Ui.NAVY, "sans-serif-black").apply {
             gravity = Gravity.CENTER
         })
         hero.addView(Ui.text(this, "${move.category.emoji}  ${move.category.label}", 13f, Ui.BLUE,
@@ -85,15 +85,45 @@ class MoveActivity : Activity() {
         }
         col.addView(steps, Ui.topMargin(this, 16))
 
+        // Benefits
+        val why = Ui.card(this)
+        why.addView(Ui.label(this, "Why it helps"))
+        move.benefits.forEach { b ->
+            why.addView(Ui.text(this, "✅  $b", 15f, Ui.NAVY), Ui.topMargin(this, 10))
+        }
+        col.addView(why, Ui.topMargin(this, 16))
+
+        // When not to do it (+ personal notes)
+        val notes = mutableListOf<String>()
+        if (Profile.isSenior(this) && move.seniorCaution)
+            notes += "Not recommended for 60+ — we leave it out of Smart picks. Choose a gentler option if unsure."
+        notes += move.cautions
+        if (notes.isNotEmpty()) {
+            val warn = Ui.card(this)
+            warn.background = Ui.rounded(this, android.graphics.Color.parseColor("#FFF4E0"), 28)
+            warn.addView(Ui.label(this, "When not to do it"))
+            notes.forEach { n ->
+                warn.addView(Ui.text(this, "⚠️  $n", 15f, android.graphics.Color.parseColor("#5C3B00")),
+                    Ui.topMargin(this, 10))
+            }
+            col.addView(warn, Ui.topMargin(this, 16))
+        }
+
+        if (Prefs.age(this) >= 40 && (move.reps > 0 || move.scaleSeconds)) {
+            col.addView(Ui.text(this, "🎯  Reps and hold time are adjusted for your age.", 13f, Ui.ON_BLUE),
+                Ui.topMargin(this, 12))
+        }
+
         // Optional countdown timer
-        if (move.seconds > 0) {
+        val secs = move.timerSeconds(this)
+        if (secs > 0) {
             val t = Ui.card(this).apply { gravity = Gravity.CENTER_HORIZONTAL }
-            val clock = Ui.text(this, format(move.seconds), 48f, Ui.NAVY, "sans-serif-black")
-            val start = Ui.button(this, "▶  Start ${move.seconds}-second timer", true)
+            val clock = Ui.text(this, format(secs), 48f, Ui.NAVY, "sans-serif-black")
+            val start = Ui.button(this, "▶  Start $secs-second timer", true)
             start.setOnClickListener {
                 timer?.cancel()
                 start.text = "↻  Restart timer"
-                timer = object : CountDownTimer(move.seconds * 1000L, 250L) {
+                timer = object : CountDownTimer(secs * 1000L, 250L) {
                     override fun onTick(left: Long) { clock.text = format(((left + 999) / 1000).toInt()) }
                     override fun onFinish() { clock.text = "🎉 Done!"; buzz() }
                 }.start()

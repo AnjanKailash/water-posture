@@ -306,10 +306,11 @@ class MainActivity : Activity() {
             !moveOn -> "Water reminders only. Turn on to add a quick push-up, stretch, " +
                        "brain game or walk to each reminder."
             Prefs.moveMode(this) == Prefs.MOVE_SMART ->
-                "✨ Smart picks — a healthy mix for the time of day.\n🍱 Walk suggested after lunch (" +
-                minutesText(Prefs.lunchMinutes(this)) + ")."
-            else -> "✋ My picks — ${Prefs.selectedMoves(this).size} activities chosen.\n" +
-                    "🍱 Lunch at " + minutesText(Prefs.lunchMinutes(this)) + "."
+                "✨ Smart picks — we recommend what suits you and the time of day." +
+                (if (Profile.hasProfile(this)) "\n💧 ~${Profile.mlPerReminder(this)} ml per reminder."
+                 else "\n👤 Add your age & weight in Choose activities for tailored tips.")
+            else -> "✋ My picks — ${Prefs.selectedMoves(this).size} activities chosen." +
+                    (if (Profile.hasProfile(this)) "\n💧 ~${Profile.mlPerReminder(this)} ml per reminder." else "")
         }
         startTimeView.text = "☀️  Starts\n" + minutesText(Prefs.startMinutes(this))
         endTimeView.text = "🌙  Ends\n" + minutesText(Prefs.endMinutes(this))

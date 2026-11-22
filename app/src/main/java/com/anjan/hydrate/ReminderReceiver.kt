@@ -131,8 +131,9 @@ class ReminderReceiver : BroadcastReceiver() {
             val move = if (Prefs.moveEnabled(c))
                 Recommender.current(c) ?: Recommender.pickNext(c) else null
 
-            val title = if (move != null) "💧 Drink water  •  ${move.emoji} ${move.name}"
-                        else "💧 Drink water  •  🧍 Sit up straight"
+            val water = if (Profile.hasProfile(c)) "💧 Drink ~${Profile.mlPerReminder(c)} ml" else "💧 Drink water"
+            val title = if (move != null) "$water  •  ${move.emoji} ${move.title(c)}"
+                        else "$water  •  🧍 Sit up straight"
             val text = move?.summary ?: "Take a sip, straighten your back, then tap Done."
 
             val b = Notification.Builder(c, CHANNEL)
