@@ -36,6 +36,10 @@ object Prefs {
     fun nextAt(c: Context) = sp(c).getLong(KEY_NEXT_AT, 0L)
     fun setNextAt(c: Context, t: Long) = sp(c).edit().putLong(KEY_NEXT_AT, t).apply()
 
+    /** True while reminders are held back by Airplane mode / DND (timer restarts when it ends). */
+    fun pausedByMode(c: Context) = sp(c).getBoolean("paused_by_mode", false)
+    fun setPausedByMode(c: Context, on: Boolean) = sp(c).edit().putBoolean("paused_by_mode", on).apply()
+
     fun alertMode(c: Context) = sp(c).getInt(KEY_ALERT, ALERT_BOTH)
     fun setAlertMode(c: Context, m: Int) = sp(c).edit().putInt(KEY_ALERT, m).apply()
 

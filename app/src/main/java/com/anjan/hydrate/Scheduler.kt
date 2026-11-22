@@ -43,10 +43,19 @@ object Scheduler {
         return Build.VERSION.SDK_INT < Build.VERSION_CODES.S || am.canScheduleExactAlarms()
     }
 
+    const val PAUSED_CHECK_MINUTES = 5
+
     /** Schedule the next reminder [Prefs.intervalMinutes] from now. */
-    fun scheduleNext(c: Context) {
+    fun scheduleNext(c: Context) =
+        scheduleAt(c, System.currentTimeMillis() + Prefs.intervalMinutes(c) * 60_000L)
+
+    /** While Airplane mode / DND is on, look again shortly to see if it has ended. */
+    fun schedulePausedCheck(c: Context) =
+        scheduleAt(c, System.currentTimeMillis() + PAUSED_CHECK_MINUTES * 60_000L)
+
+    /** Schedule the next reminder at an exact moment (e.g. a time the user picked). */
+    fun scheduleAt(c: Context, at: Long) {
         if (!Prefs.isEnabled(c)) return
-        val at = System.currentTimeMillis() + Prefs.intervalMinutes(c) * 60_000L
         val am = c.getSystemService(AlarmManager::class.java)
         val pi = mainIntent(c)
         if (canUseExact(c)) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
