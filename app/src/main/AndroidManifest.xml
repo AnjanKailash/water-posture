@@ -4,7 +4,9 @@
     <!-- Show reminder notifications (Android 13+ asks once) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- On-time reminders (Android 12+; user can allow once in settings) -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <!-- Alarm-style app: exact timing granted automatically on Android 13+ -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <!-- Restart reminders after the phone reboots -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />

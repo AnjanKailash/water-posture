@@ -89,8 +89,12 @@ object Scheduler {
      * by another one minutes later (4:30) — the next would be 5:00.
      */
     fun scheduleNextAfterReminder(c: Context) {
+        // Count from the later of "now" and the slot that was due, so an early delivery
+        // (4:27 for the 4:30 slot) never leads to the same slot ringing again.
         val halfInterval = Prefs.intervalMinutes(c) * 60_000L / 2
-        scheduleAt(c, nextSlot(c, System.currentTimeMillis() + halfInterval))
+        val due = Prefs.nextAt(c)
+        val base = maxOf(System.currentTimeMillis(), due)
+        scheduleAt(c, nextSlot(c, base + halfInterval))
     }
 
     private fun scheduleAt(c: Context, at: Long) {

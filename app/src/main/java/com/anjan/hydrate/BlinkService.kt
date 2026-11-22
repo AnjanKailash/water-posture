@@ -34,6 +34,13 @@ class BlinkService : Service() {
         @Volatile var running = false
             private set
 
+        @Volatile private var instance: BlinkService? = null
+
+        /** Another vibration (e.g. a water reminder) replaces ours — resume the blink rhythm after it. */
+        fun resumeAfterOtherVibration() {
+            Handler(Looper.getMainLooper()).postDelayed({ instance?.resume() }, 4_000L)
+        }
+
         fun start(c: Context) = c.startForegroundService(Intent(c, BlinkService::class.java))
         fun stop(c: Context) { c.stopService(Intent(c, BlinkService::class.java)) }
     }
@@ -41,11 +48,19 @@ class BlinkService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var wakeLock: PowerManager.WakeLock? = null
 
+    private var vibrating = false
+
+    /**
+     * The phone's vibration system repeats the pattern by itself (like an alarm clock),
+     * so it keeps buzzing with the screen off. This check only pauses it for DND / Airplane.
+     */
     private val tick = object : Runnable {
         override fun run() {
             val c = this@BlinkService
-            if (!ReminderReceiver.isDndOn(c) && !ReminderReceiver.isAirplaneModeOn(c)) pulse()
-            handler.postDelayed(this, Prefs.blinkSeconds(c) * 1000L)
+            val quiet = ReminderReceiver.isDndOn(c) || ReminderReceiver.isAirplaneModeOn(c)
+            if (quiet && vibrating) stopVibrating()
+            if (!quiet && !vibrating) startVibrating()
+            handler.postDelayed(this, 30_000L)
         }
     }
 
@@ -64,14 +79,18 @@ class BlinkService : Service() {
                 .apply { acquire(8 * 60 * 60 * 1000L) }
         }
         running = true
-        handler.removeCallbacks(tick)  // (re)start the rhythm, e.g. after an interval change
-        handler.postDelayed(tick, Prefs.blinkSeconds(this) * 1000L)
+        instance = this
+        handler.removeCallbacks(tick)
+        stopVibrating()            // restart cleanly (e.g. after an interval change)
+        handler.post(tick)
         return START_STICKY
     }
 
     override fun onDestroy() {
         running = false
+        instance = null
         handler.removeCallbacks(tick)
+        stopVibrating()
         wakeLock?.let { if (it.isHeld) it.release() }
         wakeLock = null
         super.onDestroy()
@@ -116,15 +135,38 @@ class BlinkService : Service() {
         }
     }
 
-    private fun pulse() {
-        val v: Vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    private fun vibrator(): Vibrator =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
             getSystemService(VibratorManager::class.java).defaultVibrator
         else @Suppress("DEPRECATION") getSystemService(Vibrator::class.java)
-        val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ALARM)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-        @Suppress("DEPRECATION")
-        v.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 90, 120, 90), -1), attrs)
+
+    /** Buzz-buzz, then wait, repeating forever until cancelled. */
+    private fun startVibrating() {
+        val gap = Prefs.blinkSeconds(this) * 1000L - 300L
+        val pattern = longArrayOf(gap, 90, 120, 90)   // wait first, then double buzz
+        val effect = VibrationEffect.createWaveform(pattern, 0)   // 0 = repeat from start
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            vibrator().vibrate(effect,
+                android.os.VibrationAttributes.createForUsage(android.os.VibrationAttributes.USAGE_ALARM))
+        } else {
+            val attrs = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            @Suppress("DEPRECATION")
+            vibrator().vibrate(effect, attrs)
+        }
+        vibrating = true
+    }
+
+    private fun resume() {
+        if (!running) return
+        if (ReminderReceiver.isDndOn(this) || ReminderReceiver.isAirplaneModeOn(this)) return
+        startVibrating()
+    }
+
+    private fun stopVibrating() {
+        vibrator().cancel()
+        vibrating = false
     }
 }

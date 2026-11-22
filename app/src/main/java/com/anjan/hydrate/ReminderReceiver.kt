@@ -44,7 +44,7 @@ class ReminderReceiver : BroadcastReceiver() {
         }
 
         val due = Prefs.nextAt(context)
-        val lateMin = if (due > 0) (System.currentTimeMillis() - due) / 60_000L else 0L
+        val lateMin = if (due > 0) Math.round((System.currentTimeMillis() - due) / 60_000.0) else 0L
         val dueText = if (due > 0) java.text.SimpleDateFormat("h:mm a", java.util.Locale.getDefault())
             .format(java.util.Date(due)) else "?"
 
@@ -58,8 +58,10 @@ class ReminderReceiver : BroadcastReceiver() {
             Prefs.logEvent(context, "Skipped $dueText slot (DND / Airplane)")
             return
         }
-        Prefs.logEvent(context, "🔔 Rang for $dueText slot" +
-            (if (lateMin >= 2) " — $lateMin min late" else ""))
+        val offset = if (lateMin >= 2) " — $lateMin min late"
+                     else if (lateMin <= -2) " — ${-lateMin} min early (phone delivered it early)"
+                     else ""
+        Prefs.logEvent(context, "🔔 Rang for $dueText slot$offset")
 
         // A fresh activity for each new reminder (snoozed ones keep theirs).
         if (Prefs.moveEnabled(context)) Recommender.pickNext(context)
@@ -129,6 +131,7 @@ class ReminderReceiver : BroadcastReceiver() {
                     .build()
                 @Suppress("DEPRECATION")
                 vibrator.vibrate(VibrationEffect.createWaveform(VIBRATION, -1), attrs)
+                if (BlinkService.running) BlinkService.resumeAfterOtherVibration()
             }
 
             if (wantSound) AlarmSound.playOnce(c, finished) else finished()
