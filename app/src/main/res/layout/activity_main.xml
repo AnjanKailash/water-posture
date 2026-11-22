@@ -302,13 +302,32 @@
             android:textSize="16sp"
             android:fontFamily="sans-serif-medium" />
 
-        <TextView
+        <!-- How it works -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="Silent in Airplane mode and Do Not Disturb.\nFollows your alert slider: Silent · Vibrate · Ring."
-            android:textColor="#CCE9FF"
-            android:textSize="12sp" />
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_info"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HOW IT WORKS"
+                android:letterSpacing="0.12"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingExtra="4dp"
+                android:text="🗓  Reminders ring every day between your Start and End time, on a fixed timetable.\n     Example: start 9:00, every 30 min → 9:00, 9:30, 10:00 …\n\n🌙  It never rings while Do Not Disturb or Airplane mode is on. Those slots are simply skipped.\n\n🔁  When you switch them off, it continues on the same timetable.\n     Example: DND ends at 9:05 → next reminder at 9:30.\n\n🎚  Follows your alert slider: Silent = nothing, Vibrate = buzz only, Ring = sound."
+                android:textColor="#E6F4FF"
+                android:textSize="13sp" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>
